@@ -1,6 +1,6 @@
 # JPA Criteria API
 
-Para fazer alguns testes criei esse DAO Génerico com métodos fluentes para abrir uma transação, adicionar, buscar por id e fazer consultas jpql parametrizadas.
+Para realizar alguns testes, criei este DAO genérico com métodos fluentes para iniciar uma transação, adicionar registros, buscar por ID e realizar consultas JPQL parametrizadas.
 
 ```java
 public class GenericDAO<E> {
@@ -69,5 +69,4 @@ public class GenericDAO<E> {
 
 * Java
 
-
-
+* Postgres
