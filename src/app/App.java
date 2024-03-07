@@ -14,6 +14,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
@@ -63,7 +65,27 @@ public class App {
         joinQuery();
         parameter();
         aggregateFunctions();
+        updateClientWallet();
     }
+
+
+    private static void updateClientWallet() {
+        em.getTransaction().begin();
+        try {
+            CriteriaBuilder builder = em.getCriteriaBuilder();
+            CriteriaUpdate<Client> update = builder.createCriteriaUpdate(Client.class);
+            Root<Client> client = update.from(Client.class);
+
+            update.set(client.get("wallet"), new BigDecimal(2000));
+
+            update.where(builder.greaterThan(client.get("wallet"),100));
+            em.createQuery(update).executeUpdate();
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            em.getTransaction().rollback();
+        }
+    }
+
 
     private static void selectingWorkerEntity(Long id) {
         var builder = em.getCriteriaBuilder();
