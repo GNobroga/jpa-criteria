@@ -26,4 +26,9 @@ public class Pen extends BaseEntity {
     @JoinColumn(name = "client_id")
     @ManyToOne
     private Client client;
+
+    @Override 
+    public String toString() {
+        return name;
+    }
 }

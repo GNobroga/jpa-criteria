@@ -12,7 +12,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Tuple;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import app.domain.entities.Client;
 import app.domain.entities.Pen;
@@ -52,6 +55,9 @@ public class App {
         //selectMutipleValuesSecondCase();
 
         //selectAndReturnWorkerDTO();
+
+        //selectionValuesFromMultipleRoot();
+        joinQuery();
     
     }
 
@@ -152,7 +158,7 @@ public class App {
         for (int i = 0; i < 100; i++) {
             Pen pen = new Pen();
             pen.setName("Pen_" + i);
-            pen.setColor("BLACK");
+            pen.setColor("BLACK" + 1);
 
             Client client = new Client();
             client.setName("Client_" + i);
@@ -166,6 +172,43 @@ public class App {
         }
 
         dao.commit();
+    }
+
+    private static void selectionValuesFromMultipleRoot() {
+        var builder = em.getCriteriaBuilder();
+        var query = builder.createQuery(Tuple.class);
+        Root<Client> client = query.from(Client.class);
+        Root<Pen> pen = query.from(Pen.class);
+        
+        // A ordem aqui influencia na tupla
+        query.multiselect(pen, client);
+
+        Predicate restriction = builder.and(
+            builder.like(builder.lower(pen.get("name")), "%pen%"),
+            builder.gt(client.get("id"), 5)
+        );
+
+        query.where(restriction);
+
+        for (var tuple: em.createQuery(query).getResultList()) {
+            // O fetch das pens já vem no usuário.
+            if (tuple.get(1) instanceof Client object) {
+                System.out.println(object.getPens().size());
+            } 
+        }
+    }
+
+    private static void joinQuery() {
+        var builder = em.getCriteriaBuilder();
+        var query = builder.createQuery(Client.class);
+        var client = query.from(Client.class);
+        client.join("pens", JoinType.LEFT);
+
+        query.where(builder.gt(client.get("wallet"), 50));
+
+        for (Client c: em.createQuery(query).getResultList()) {
+            System.out.println(c);
+        }
     }
 
 
