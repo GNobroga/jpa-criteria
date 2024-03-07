@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -12,7 +13,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Tuple;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.JoinType;
+import javax.persistence.criteria.ParameterExpression;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -39,26 +42,27 @@ public class App {
     public static void main (String ...args) {
         addWorkerData();
         addClientAndPen();
-        // System.out.println();
-        // selectingWorkerEntity(25L);
-        // System.out.println();
-        // parameterizedQueryForWorker("from Worker w where w.salary >= :value and w.name = :name", new HashMap<>() {
-        //     {
-        //         put("value", new BigDecimal(5));
-        //         put("name", "Xander");
-        //     }
-        // });
-        // System.out.println();
-        // querySingleEntityAttributeSelection();
-        //selectWithTuple();
+        System.out.println();
+        selectingWorkerEntity(25L);
+        System.out.println();
+        parameterizedQueryForWorker("from Worker w where w.salary >= :value and w.name = :name", new HashMap<>() {
+            {
+                put("value", new BigDecimal(5));
+                put("name", "Xander");
+            }
+        });
+        System.out.println();
+        querySingleEntityAttributeSelection();
+        selectWithTuple();
 
-        //selectMutipleValuesSecondCase();
+        selectMutipleValuesSecondCase();
 
-        //selectAndReturnWorkerDTO();
+        selectAndReturnWorkerDTO();
 
-        //selectionValuesFromMultipleRoot();
+        selectionValuesFromMultipleRoot();
         joinQuery();
-    
+        parameter();
+        aggregateFunctions();
     }
 
     private static void selectingWorkerEntity(Long id) {
@@ -122,6 +126,7 @@ public class App {
         var query = builder.createQuery(WorkerDTO.class);
         var root = query.from(Worker.class);
 
+        // É criado na ordem do constructor
         query.select(builder.construct(WorkerDTO.class, root.get("name"), root.get("salary")));
 
         var result = em.createQuery(query).getResultList();
@@ -209,6 +214,33 @@ public class App {
         for (Client c: em.createQuery(query).getResultList()) {
             System.out.println(c);
         }
+    }
+
+
+    private static void parameter() {
+        var builder = em.getCriteriaBuilder();
+        var query = builder.createQuery(Client.class);
+        var root = query.from(Client.class);
+
+        ParameterExpression<BigDecimal> parameter = builder.parameter(BigDecimal.class);
+
+        query.select(root).where(builder.gt(root.get("wallet"), parameter));
+
+        TypedQuery<Client> result = em.createQuery(query);
+        result.setParameter(parameter, new BigDecimal(400));
+        result.getResultList().forEach(System.out::println);
+    }
+
+
+    private static void aggregateFunctions() {
+        var builder = em.getCriteriaBuilder();
+        var query = builder.createQuery(Long.class);
+        var root = query.from(Client.class);
+        query.select(builder.count(root));
+
+        TypedQuery<Long> result = em.createQuery(query);
+
+        System.out.println(result.getSingleResult());
     }
 
 
